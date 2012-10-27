@@ -8,26 +8,18 @@
 
 #import "AppDelegate.h"
 #import "PlugIn.h"
+#import "MenuViewController.h"
 
 @implementation AppDelegate
-
-- (void)dealloc {
-    TRACE();
-
-    [_window release];
-    [super dealloc];
-}
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     TRACE();
 
     [PlugIn hook];
 
-    self.window = [[[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]] autorelease];
+    self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
     // Override point for customization after application launch.
-    UIViewController *viewController = [[[UIViewController alloc] init] autorelease];
-    self.window.backgroundColor = [UIColor redColor];
-    self.window.rootViewController = viewController;
+    self.window.rootViewController = [[UINavigationController alloc] initWithRootViewController:[[MenuViewController alloc] init]];
     [self.window makeKeyAndVisible];
     return YES;
 }

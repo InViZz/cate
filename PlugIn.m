@@ -14,14 +14,15 @@ void CTCallDisconnect(CTCall *call);
 NSString *CTCallCopyAddress(void *, CTCall *call);
 
 static void callback(CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object, CFDictionaryRef userInfo) {
-    if ([ (NSString *)name isEqualToString:@"kCTCallStatusChangeNotification"]) {
+    if ([PlugIn enabled] && [(NSString *)name isEqualToString:@"kCTCallStatusChangeNotification"]) {
         CTCall *call = (CTCall *)[(NSDictionary *)userInfo objectForKey:@"kCTCall"];
-        NSString *caller = CTCallCopyAddress(NULL, call);
-        NSLog(@"caller is %@", caller);
-        CTCallDisconnect(call);
-        // CTCallAnswer
-        // CTCallGetStatus
-        // CTCallGetGetRowIDOfLastInsert
+        NSInteger status = [[(NSDictionary *)userInfo objectForKey:@"kCTCallStatus"] intValue];
+        if (status == 4) { // incoming
+            NSString *caller = CTCallCopyAddress(NULL, call);
+            NSLog(@"caller is %@", caller);
+            [caller release];
+            CTCallDisconnect(call);
+        }
     }
 }
 
@@ -29,6 +30,21 @@ static void callback(CFNotificationCenterRef center, void *observer, CFStringRef
 
 + (void)hook {
     CTTelephonyCenterAddObserver(CTTelephonyCenterGetDefault(), NULL, callback, CFSTR("kCTCallStatusChangeNotification"), NULL, CFNotificationSuspensionBehaviorHold);
+}
+
+static NSString *kPrefPath = @"/var/mobile/Library/Preferences/com.shaohua.cate.plist";
+static NSString *kEnabledKey = @"enabled";
+
++ (BOOL)enabled {
+    NSDictionary *plist = [NSDictionary dictionaryWithContentsOfFile:kPrefPath];
+    return [[plist objectForKey:kEnabledKey] boolValue];
+}
+
++ (void)setEnabled:(BOOL)enabled {
+    NSMutableDictionary *plist = [NSMutableDictionary dictionaryWithContentsOfFile:kPrefPath]
+    ?: [NSMutableDictionary dictionary];
+    [plist setObject:[NSNumber numberWithBool:enabled] forKey:kEnabledKey];
+    [plist writeToFile:kPrefPath atomically:YES];
 }
 
 @end

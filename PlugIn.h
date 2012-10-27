@@ -14,5 +14,7 @@
 @interface PlugIn : NSObject
 
 + (void)hook;
++ (BOOL)enabled;
++ (void)setEnabled:(BOOL)enabled;
 
 @end
