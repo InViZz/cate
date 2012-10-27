@@ -5,3 +5,5 @@ obj
 theos
 *.deb
 
+project.xcworkspace
+xcuserdata
