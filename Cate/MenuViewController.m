@@ -8,6 +8,7 @@
 
 #import "MenuViewController.h"
 #import "PlugIn.h"
+#import "ContactsViewController.h"
 
 @implementation MenuViewController
 
@@ -29,7 +30,7 @@
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    return 1;
+    return 2;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
@@ -39,16 +40,24 @@
         cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:cellIdentifier];
         cell.selectionStyle = UITableViewCellSelectionStyleNone;
     }
-    UISwitch *toggle = [[UISwitch alloc] init];
-    toggle.on = [PlugIn enabled];
-    [toggle addTarget:self action:@selector(switchValueChanged:) forControlEvents:UIControlEventValueChanged];
-    cell.accessoryView = toggle;
-    cell.textLabel.text = NSLocalizedString(@"Enabled", nil);
+    if (indexPath.row == 0) {
+        UISwitch *toggle = [[UISwitch alloc] init];
+        toggle.on = [PlugIn enabled];
+        [toggle addTarget:self action:@selector(switchValueChanged:) forControlEvents:UIControlEventValueChanged];
+        cell.accessoryView = toggle;
+        cell.textLabel.text = NSLocalizedString(@"Enabled", nil);
+    } else {
+        cell.textLabel.text = NSLocalizedString(@"Blacklisted", nil);
+    }
     return cell;
 }
 
 #pragma mark - Table view delegate
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+    if (indexPath.row == 1) {
+        ContactsViewController *viewController = [[ContactsViewController alloc] init];
+        [self.navigationController pushViewController:viewController animated:YES];
+    }
 }
 
 @end

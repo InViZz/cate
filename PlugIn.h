@@ -14,7 +14,12 @@
 @interface PlugIn : NSObject
 
 + (void)hook;
+
+// getters and setters
 + (BOOL)enabled;
 + (void)setEnabled:(BOOL)enabled;
+
++ (NSMutableArray *)blacklisted;
++ (void)setBlacklisted:(NSArray *)blacklisted;
 
 @end

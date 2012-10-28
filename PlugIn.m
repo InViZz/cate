@@ -19,9 +19,19 @@ static void callback(CFNotificationCenterRef center, void *observer, CFStringRef
         NSInteger status = [[(NSDictionary *)userInfo objectForKey:@"kCTCallStatus"] intValue];
         if (status == 4) { // incoming
             NSString *caller = CTCallCopyAddress(NULL, call);
-            NSLog(@"caller is %@", caller);
+
+            NSArray *contacts = [PlugIn blacklisted];
+            for (NSDictionary *person in contacts) {
+                for (NSString *number in [person objectForKey:@"numbers"]) {
+                    if ([caller isEqualToString:number]) {
+                        NSLog(@"caller %@ is blacklisted", caller);
+                        CTCallDisconnect(call);
+                        goto outer;
+                    }
+                }
+            }
+        outer:
             [caller release];
-            CTCallDisconnect(call);
         }
     }
 }
@@ -34,17 +44,36 @@ static void callback(CFNotificationCenterRef center, void *observer, CFStringRef
 
 static NSString *kPrefPath = @"/var/mobile/Library/Preferences/com.shaohua.cate.plist";
 static NSString *kEnabledKey = @"enabled";
+static NSString *kBlacklistedKey = @"blacklisted";
 
-+ (BOOL)enabled {
+#pragma mark - Private
++ (id)objectForKey:(id)key {
     NSDictionary *plist = [NSDictionary dictionaryWithContentsOfFile:kPrefPath];
-    return [[plist objectForKey:kEnabledKey] boolValue];
+    return [plist objectForKey:key];
+}
+
++ (void)setObject:(id)object forKey:(id)key {
+    NSMutableDictionary *plist = [NSMutableDictionary dictionaryWithContentsOfFile:kPrefPath]
+        ?: [NSMutableDictionary dictionary];
+    [plist setObject:object forKey:key];
+    [plist writeToFile:kPrefPath atomically:YES];
+}
+
+#pragma mark - Public
++ (BOOL)enabled {
+    return [[self objectForKey:kEnabledKey] boolValue];
 }
 
 + (void)setEnabled:(BOOL)enabled {
-    NSMutableDictionary *plist = [NSMutableDictionary dictionaryWithContentsOfFile:kPrefPath]
-    ?: [NSMutableDictionary dictionary];
-    [plist setObject:[NSNumber numberWithBool:enabled] forKey:kEnabledKey];
-    [plist writeToFile:kPrefPath atomically:YES];
+    [self setObject:[NSNumber numberWithBool:enabled] forKey:kEnabledKey];
+}
+
++ (NSMutableArray *)blacklisted {
+    return [NSMutableArray arrayWithArray:[self objectForKey:kBlacklistedKey]];
+}
+
++ (void)setBlacklisted:(NSArray *)blacklisted {
+    [self setObject:blacklisted forKey:kBlacklistedKey];
 }
 
 @end

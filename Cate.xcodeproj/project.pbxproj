@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		AD526DF4163D7C4C00EB95E3 /* AddressBookUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AD526DF3163D7C4C00EB95E3 /* AddressBookUI.framework */; };
+		AD526DF7163D7C5300EB95E3 /* AddressBook.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AD526DF6163D7C5300EB95E3 /* AddressBook.framework */; };
+		AD670D0B163C2F2F00A51C5A /* ContactsViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = AD670D0A163C2F2F00A51C5A /* ContactsViewController.m */; };
 		AD7A62D9163B9920001E49C5 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AD7A62D8163B9920001E49C5 /* UIKit.framework */; };
 		AD7A62DB163B9920001E49C5 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AD7A62DA163B9920001E49C5 /* Foundation.framework */; };
 		AD7A62DD163B9920001E49C5 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AD7A62DC163B9920001E49C5 /* CoreGraphics.framework */; };
@@ -22,6 +25,10 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		AD526DF3163D7C4C00EB95E3 /* AddressBookUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AddressBookUI.framework; path = System/Library/Frameworks/AddressBookUI.framework; sourceTree = SDKROOT; };
+		AD526DF6163D7C5300EB95E3 /* AddressBook.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AddressBook.framework; path = System/Library/Frameworks/AddressBook.framework; sourceTree = SDKROOT; };
+		AD670D09163C2F2F00A51C5A /* ContactsViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ContactsViewController.h; sourceTree = "<group>"; };
+		AD670D0A163C2F2F00A51C5A /* ContactsViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ContactsViewController.m; sourceTree = "<group>"; };
 		AD7A62D4163B9920001E49C5 /* Cate.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Cate.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AD7A62D8163B9920001E49C5 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		AD7A62DA163B9920001E49C5 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
@@ -47,6 +54,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AD526DF7163D7C5300EB95E3 /* AddressBook.framework in Frameworks */,
+				AD526DF4163D7C4C00EB95E3 /* AddressBookUI.framework in Frameworks */,
 				AD7A6301163B99FD001E49C5 /* CoreTelephony.framework in Frameworks */,
 				AD7A62D9163B9920001E49C5 /* UIKit.framework in Frameworks */,
 				AD7A62DB163B9920001E49C5 /* Foundation.framework in Frameworks */,
@@ -79,10 +88,12 @@
 		AD7A62D7163B9920001E49C5 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				AD7A6300163B99FD001E49C5 /* CoreTelephony.framework */,
-				AD7A62D8163B9920001E49C5 /* UIKit.framework */,
-				AD7A62DA163B9920001E49C5 /* Foundation.framework */,
+				AD526DF6163D7C5300EB95E3 /* AddressBook.framework */,
+				AD526DF3163D7C4C00EB95E3 /* AddressBookUI.framework */,
 				AD7A62DC163B9920001E49C5 /* CoreGraphics.framework */,
+				AD7A6300163B99FD001E49C5 /* CoreTelephony.framework */,
+				AD7A62DA163B9920001E49C5 /* Foundation.framework */,
+				AD7A62D8163B9920001E49C5 /* UIKit.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -92,6 +103,8 @@
 			children = (
 				AD7A62E7163B9920001E49C5 /* AppDelegate.h */,
 				AD7A62E8163B9920001E49C5 /* AppDelegate.m */,
+				AD670D09163C2F2F00A51C5A /* ContactsViewController.h */,
+				AD670D0A163C2F2F00A51C5A /* ContactsViewController.m */,
 				AD7A6302163BA15F001E49C5 /* MenuViewController.h */,
 				AD7A6303163BA15F001E49C5 /* MenuViewController.m */,
 				AD7A62DF163B9920001E49C5 /* Supporting Files */,
@@ -182,6 +195,7 @@
 				AD7A62E9163B9920001E49C5 /* AppDelegate.m in Sources */,
 				AD7A62FB163B997A001E49C5 /* PlugIn.m in Sources */,
 				AD7A6304163BA15F001E49C5 /* MenuViewController.m in Sources */,
+				AD670D0B163C2F2F00A51C5A /* ContactsViewController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
