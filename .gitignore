@@ -2,7 +2,6 @@
 .theos
 _
 obj
-theos
 *.deb
 
 project.xcworkspace

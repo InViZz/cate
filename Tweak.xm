@@ -1,6 +1,21 @@
-#import <CoreTelephony/CTCall.h>
+typedef struct __GSEvent *GSEventRef;
+typedef struct _opaque_pthread_t opaque_pthread_t;
 #import <SpringBoard/SpringBoard.h>
+#import <SpringBoard/SBSMSAlertItem.h>
+
+#import <CoreTelephony/CTCall.h>
+#import <objc/runtime.h>
+
 #import "PlugIn.h"
+
+typedef struct {
+    struct __CFRuntimeBase {
+        unsigned int _cfisa;
+        unsigned char _cfinfo[4];
+    } _field1;
+    int _field2;
+    int _field3;
+} CKSMSRecord;
 
 %hook CTCallCenter
 - (id)description { %log; id r = %orig; NSLog(@" = %@", r); return r; }
@@ -36,3 +51,41 @@
 
 %end
 
+%hook SBAlertItemsController
+-(void)activateAlertItem:(id)item {
+    // It's an SMS/MMS!
+    %log;
+    if ([item isKindOfClass:objc_getClass("SBSMSAlertItem")]) {
+        // ignore
+    } else {
+        %orig;
+    }
+}
+%end
+
+%hook SBAwayBulletinListController
+
+- (void)clearViewsAndHibernate {
+    %log;
+    NSLog(@"*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*");
+    %orig;
+}
+
+%end
+
+%hook CKSMSService
+- (void)_receivedMessage:(id)arg1 replace:(BOOL)arg2 replacedRecordIdentifier:(int)arg3 postInternalNotification:(BOOL)arg4 {
+    %log;
+    NSLog(@"class %@", [arg1 class]);
+
+    %orig;
+}
+
+- (void)_receivedMessage:(id)arg1 replace:(BOOL)arg2 postInternalNotification:(BOOL)arg3 {
+    %log;
+    NSLog(@"class %@", [arg1 class]);
+
+    %orig;
+}
+
+%end

@@ -8,15 +8,46 @@
 
 #import "PlugIn.h"
 
+typedef struct __CTCall *CTCallRef;
+
 void CTTelephonyCenterAddObserver(CFNotificationCenterRef center, const void *observer, CFNotificationCallback callBack, CFStringRef name, const void *object, CFNotificationSuspensionBehavior suspensionBehavior);
 CFNotificationCenterRef CTTelephonyCenterGetDefault(void);
-void CTCallDisconnect(CTCall *call);
-NSString *CTCallCopyAddress(void *, CTCall *call);
+void CTCallDisconnect(CTCallRef call);
+NSString *CTCallCopyAddress(void *, CTCallRef call);
 
-static void callback(CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object, CFDictionaryRef userInfo) {
-    if ([PlugIn enabled] && [(NSString *)name isEqualToString:@"kCTCallStatusChangeNotification"]) {
-        CTCall *call = (CTCall *)[(NSDictionary *)userInfo objectForKey:@"kCTCall"];
-        NSInteger status = [[(NSDictionary *)userInfo objectForKey:@"kCTCallStatus"] intValue];
+
+@interface CTMessageCenter
++ (id)sharedMessageCenter;
+- (id)incomingMessageWithId:(unsigned)anId;
+- (int)incomingMessageCount;
+- (id)allIncomingMessages;
+@end
+
+
+@protocol CTMessageAddress
+- (id)encodedString;
+- (id)canonicalFormat;
+@end
+
+
+@interface CTMessage
+@property (assign, nonatomic) int messageType;
+@property (copy, nonatomic) NSObject <CTMessageAddress> *sender; // CTPhoneNumber
+@property (readonly, assign) NSArray *items;
+
+@end
+
+@interface CTMessagePart
+@property (copy, nonatomic) NSData *data;
+
+@end
+
+static void callStatusChanged(CFNotificationCenterRef center, void *observer, CFStringRef nameRef, const void *object, CFDictionaryRef userInfoRef) {
+    NSDictionary *userInfo = (NSDictionary *)userInfoRef;
+
+    if ([PlugIn enabled]) {
+        CTCallRef call = (CTCallRef)[userInfo objectForKey:@"kCTCall"];
+        NSInteger status = [[userInfo objectForKey:@"kCTCallStatus"] intValue];
         if (status == 4) { // incoming
             NSString *caller = CTCallCopyAddress(NULL, call);
 
@@ -36,10 +67,40 @@ static void callback(CFNotificationCenterRef center, void *observer, CFStringRef
     }
 }
 
+static void messageReceived(CFNotificationCenterRef center, void *observer, CFStringRef nameRef, const void *object, CFDictionaryRef userInfoRef) {
+    NSString *name = (NSString *)nameRef;
+    NSDictionary *userInfo = (NSDictionary *)userInfoRef;
+    NSLog(@"%@ %@", name, userInfo);
+    // kCTMessageIdKey = "-2147483628";
+    // kCTMessageTypeKey = 1;
+
+    if ([PlugIn enabled]) {
+        CTMessageCenter *center = [CTMessageCenter sharedMessageCenter];
+        int messageId = [[userInfo objectForKey:@"kCTMessageIdKey"] intValue];
+        id message = [center incomingMessageWithId:messageId];
+        id sender = [message sender];
+        NSString *number = [sender canonicalFormat];
+
+        NSLog(@"msg %@, sender %@, number %@", message, [message sender], number);
+        NSArray *items = [message items];
+        // print first part
+        if ([items count]) {
+            id part = [items objectAtIndex:0];
+            NSLog(@"data=%@", [[NSString alloc] initWithData:[part data] encoding:NSUTF8StringEncoding]);
+
+        }
+    }
+}
+
 @implementation PlugIn
 
+extern CFStringRef kCTMessageReceivedNotification;
+extern CFStringRef kCTCallStatusChangeNotification;
+
 + (void)hook {
-    CTTelephonyCenterAddObserver(CTTelephonyCenterGetDefault(), NULL, callback, CFSTR("kCTCallStatusChangeNotification"), NULL, CFNotificationSuspensionBehaviorHold);
+    CFNotificationCenterRef center = CTTelephonyCenterGetDefault();
+    CTTelephonyCenterAddObserver(center, NULL, callStatusChanged,  kCTCallStatusChangeNotification, NULL, CFNotificationSuspensionBehaviorDrop);
+    CTTelephonyCenterAddObserver(center, NULL, messageReceived, kCTMessageReceivedNotification, NULL, CFNotificationSuspensionBehaviorDrop);
 }
 
 static NSString *kPrefPath = @"/var/mobile/Library/Preferences/com.shaohua.cate.plist";
@@ -54,7 +115,7 @@ static NSString *kBlacklistedKey = @"blacklisted";
 
 + (void)setObject:(id)object forKey:(id)key {
     NSMutableDictionary *plist = [NSMutableDictionary dictionaryWithContentsOfFile:kPrefPath]
-        ?: [NSMutableDictionary dictionary];
+    ?: [NSMutableDictionary dictionary];
     [plist setObject:object forKey:key];
     [plist writeToFile:kPrefPath atomically:YES];
 }

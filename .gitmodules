@@ -1,0 +1,6 @@
+[submodule "theos"]
+	path = theos
+	url = git://github.com/DHowett/theos.git
+[submodule "SpringBoard4.0"]
+	path = SpringBoard4.0
+	url = https://github.com/Zimm/SpringBoard4.0.git
