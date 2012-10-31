@@ -3,7 +3,6 @@
 		Bundles = (
 			"com.apple.springboard",
 			"com.apple.mobilephone",
-			"com.apple.MobileSMS",
 		);
 	};
 }

@@ -3,7 +3,7 @@ Name: cate
 Depends: mobilesubstrate
 Version: 0.0.1
 Architecture: iphoneos-arm
-Description: An awesome MobileSubstrate tweak!
+Description: blocking sms and phone calls for jailbroken iPhones
 Maintainer: shaohua
 Author: shaohua
 Section: Tweaks

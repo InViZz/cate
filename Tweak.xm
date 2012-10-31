@@ -3,26 +3,69 @@ typedef struct __GSEvent *GSEventRef;
 typedef struct _opaque_pthread_t opaque_pthread_t;
 
 #import <SpringBoard/SpringBoard.h>
-#import <SpringBoard/SBSMSAlertItem.h>
 
 #import "PlugIn.h"
 
+// ================================================================================================
+//
+// Phone Call
+//
+// ================================================================================================
+#pragma mark - hook CFNotificationCenterPostNotification
+
+#define MSHook(type, name, args...) \
+static type (*_ ## name)(args); \
+static type $ ## name(args)
+
 typedef struct __CTCall *CTCallRef;
 
-extern "C" void CTCallDisconnect(CTCallRef call);
-extern "C" NSString *CTCallCopyAddress(void *, CTCallRef call);
+extern "C" {
+void CTCallDisconnect(CTCallRef call);
+NSString *CTCallCopyAddress(void *, CTCallRef call);
+void CFNotificationCenterPostNotification(CFNotificationCenterRef center, CFStringRef name, const void *object, CFDictionaryRef userInfo, Boolean deliverImmediately);
+}
 
-@interface CTMessageCenter
-+ (id)sharedMessageCenter;
-- (id)incomingMessageWithId:(unsigned)anId;
-- (int)incomingMessageCount;
-- (id)allIncomingMessages;
-@end
+MSHook(void, CFNotificationCenterPostNotification, CFNotificationCenterRef center, CFStringRef nameRef, const void *object, CFDictionaryRef userInfo, Boolean deliverImmediately) {
+    extern NSString *kCTCallStatusChangeNotification;
+    extern NSString *kCTCallIdentificationChangeNotification;
+    extern NSString *kCTCallHistoryRecordAddNotification;
 
+    NSLog(@"MSHook name=%@ userInfo=%@", nameRef, userInfo);
+    NSString *name = (NSString *)nameRef;
+    BOOL toFilter = [name isEqualToString:kCTCallStatusChangeNotification]
+    || [name isEqualToString:kCTCallIdentificationChangeNotification] // SBUIFullscreenAlertAdapter
+    || [name isEqualToString:kCTCallHistoryRecordAddNotification]; // SBAwayBulletinListController
+
+    if (toFilter && [PlugIn isEnabled]) {
+        NSDictionary *info = (NSDictionary *)userInfo;
+        NSInteger status = [[info objectForKey:@"kCTCallStatus"] intValue];
+        CTCallRef call = (CTCallRef)[info objectForKey:@"kCTCall"];
+        NSString *number = CTCallCopyAddress(NULL, call);
+
+        if ([PlugIn isNumberBlacklisted:number]) {
+            if (status == 4) { // incoming
+                NSLog(@"%@ got dropped for phone number %@", name, number);
+                CTCallDisconnect(call);
+            }
+            [number release];
+            return; // filter out this notification
+        }
+    }
+    _CFNotificationCenterPostNotification(center, nameRef, object, userInfo, deliverImmediately);
+}
+
+
+// ================================================================================================
+//
+// SMS Related
+//
+// ================================================================================================
+#pragma mark - hook SMSCTServer
 
 @protocol CTMessageAddress
 - (id)encodedString;
 - (id)canonicalFormat;
+
 @end
 
 
@@ -33,111 +76,12 @@ extern "C" NSString *CTCallCopyAddress(void *, CTCallRef call);
 
 @end
 
+
 @interface CTMessagePart
 @property (copy, nonatomic) NSData *data;
 
 @end
 
-%hook CTCallCenter
-- (id)description { %log; id r = %orig; NSLog(@" = %@", r); return r; }
-- (void)broadcastCallStateChangesIfNeededWithFailureLogMessage:(id)arg1 { %log; %orig; }
-
-- (void)handleNotificationFromConnection:(void *)arg1 ofType:(id)arg2 withInfo:(NSDictionary *)info {
-    %log;
-    if ([PlugIn isEnabled]) {
-        CTCallRef call = (CTCallRef)[info objectForKey:@"kCTCall"];
-        NSInteger status = [[info objectForKey:@"kCTCallStatus"] intValue];
-        if (status == 4) { // incoming
-            NSString *number = [CTCallCopyAddress(NULL, call) autorelease];
-
-            if ([PlugIn isNumberBlacklisted:number]) {
-                NSLog(@"call from %@ has been filtered", number);
-                CTCallDisconnect(call);
-                return;
-            }
-        }
-    }
-    %orig;
-}
-
-- (void)setCurrentCalls:(NSSet *)currentCalls { %log; %orig; }
-- (NSSet *)currentCalls { %log; NSSet * r = %orig; NSLog(@" = %@", r); return r; }
-- (BOOL)calculateCallStateChanges:(id)arg1 { %log; BOOL r = %orig; NSLog(@" = %d", r); return r; }
-- (BOOL)getCurrentCallSetFromServer:(id)arg1 { %log; BOOL r = %orig; NSLog(@" = %d", r); return r; }
-- (void)setCallEventHandler:(id )callEventHandler { %log; %orig; }
-- (id )callEventHandler { %log; id  r = %orig; NSLog(@" = %@", r); return r; }
-- (void)dealloc { %log; %orig; }
-- (id)init { %log; id r = %orig; NSLog(@" = %@", r); return r; }
-- (void)cleanUpServerConnection { %log; %orig; }
-- (BOOL)setUpServerConnection { %log; BOOL r = %orig; NSLog(@" = %d", r); return r; }
-%end
-
-%hook SpringBoard
-
--(void)applicationDidFinishLaunching:(id)application {
-    %log;
-    NSLog(@"*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*");
-    %orig;
-}
-
-%end
-
-%hook SBAlertItemsController
--(void)activateAlertItem:(id)item {
-    // It's an SMS/MMS!
-    NSLog(@"*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*");
-    %log;
-    if ([item isKindOfClass:objc_getClass("SBSMSAlertItem")]) {
-        // ignore
-    } else {
-        %orig;
-    }
-}
-%end
-
-%hook SBAwayBulletinListController
-
-- (void)_updateModelAndTableViewForAddition:(id)addition {
-    %log;
-    NSLog(@"*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*");
-    %orig;
-}
-
-- (void)clearViewsAndHibernate {
-    %log;
-    NSLog(@"*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*");
-    %orig;
-}
-
-%end
-
-%hook SBCallAlert
-- (id)initWithCall:(id)arg1 {
-    %log;
-    NSLog(@"*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*");
-    return %orig;
-}
-
-%end
-
-%hook SBPluginManager
-
-- (Class)loadPluginBundle:(id)bundle {
-    %log;
-    NSLog(@"*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*");
-    return %orig;
-}
-
-%end
-
-%hook SBUIController
-
-- (void)activateApplicationAnimated:(id)animated {
-    %log;
-    NSLog(@"*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*");
-    %orig;
-}
-%end
 
 %hook SMSCTServer
 
@@ -166,50 +110,33 @@ extern "C" NSString *CTCallCopyAddress(void *, CTCallRef call);
 
 %end
 
-%hook BBBulletin
 
-- (id)responseForDefaultAction {
+// ================================================================================================
+//
+// Entry Point
+//
+// ================================================================================================
+#pragma mark - hook SpringBoard
+
+%hook SpringBoard
+
+-(void)applicationDidFinishLaunching:(id)application {
     %log;
-    NSLog(@"*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*");
-    return %orig;
+    NSLog(@"========================== SpringBoard Restarted ==========================");
+    %orig;
+
+    MSHookFunction((void *)CFNotificationCenterPostNotification, (void *)$CFNotificationCenterPostNotification, (void **)&_CFNotificationCenterPostNotification);
 }
 
 %end
 
-%hook BBAction
-
-+ (id)actionWithLaunchURL:(NSURL *)arg1 callblock:(id)arg2 {
+%hook PhoneApplication
+-(void)applicationDidFinishLaunching:(id)application {
     %log;
-    NSLog(@"*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*");
-    return %orig;
-}
+    NSLog(@"========================== MobilePhone Restarted ==========================");
+    %orig;
 
-%end
-
-%hook CKConversationList
-
-- (id)init {
-    %log;
-    NSLog(@"*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*");
-    return %orig;
-}
-
-%end
-
-%hook MPIncomingPhoneCallController
--(id)initWithCall:(CTCallRef)call {
-    %log;
-    NSLog(@"*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*");
-    return %orig;
-}
-
-%end
-
-%hook SBUIFullscreenAlertAdapter
-- (id)initWithAlertController:(MPIncomingPhoneCallController *)arg1 {
-    %log;
-    NSLog(@"*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*");
-    return %orig;
+    MSHookFunction((void *)CFNotificationCenterPostNotification, (void *)$CFNotificationCenterPostNotification, (void **)&_CFNotificationCenterPostNotification);
 }
 
 %end
