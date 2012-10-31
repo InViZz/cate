@@ -8,7 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		AD46B3AF163E6D17008430C7 /* cate.plist in Resources */ = {isa = PBXBuildFile; fileRef = AD46B3AD163E6D17008430C7 /* cate.plist */; };
-		AD46B3B0163E6D17008430C7 /* Makefile in Sources */ = {isa = PBXBuildFile; fileRef = AD46B3AE163E6D17008430C7 /* Makefile */; };
 		AD526DF4163D7C4C00EB95E3 /* AddressBookUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AD526DF3163D7C4C00EB95E3 /* AddressBookUI.framework */; };
 		AD526DF7163D7C5300EB95E3 /* AddressBook.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AD526DF6163D7C5300EB95E3 /* AddressBook.framework */; };
 		AD670D0B163C2F2F00A51C5A /* ContactsViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = AD670D0A163C2F2F00A51C5A /* ContactsViewController.m */; };
@@ -205,7 +204,6 @@
 				AD7A62FB163B997A001E49C5 /* PlugIn.m in Sources */,
 				AD7A6304163BA15F001E49C5 /* MenuViewController.m in Sources */,
 				AD670D0B163C2F2F00A51C5A /* ContactsViewController.m in Sources */,
-				AD46B3B0163E6D17008430C7 /* Makefile in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

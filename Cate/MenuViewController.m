@@ -42,7 +42,7 @@
     }
     if (indexPath.row == 0) {
         UISwitch *toggle = [[UISwitch alloc] init];
-        toggle.on = [PlugIn enabled];
+        toggle.on = [PlugIn isEnabled];
         [toggle addTarget:self action:@selector(switchValueChanged:) forControlEvents:UIControlEventValueChanged];
         cell.accessoryView = toggle;
         cell.textLabel.text = NSLocalizedString(@"Enabled", nil);

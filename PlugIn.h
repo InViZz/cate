@@ -9,17 +9,15 @@
 #import <Foundation/Foundation.h>
 #import <CoreTelephony/CTCall.h>
 
-#define TRACE() NSLog(@"[%@ %s]", [self class], (char *)_cmd)
-
 @interface PlugIn : NSObject
 
-+ (void)hook;
-
 // getters and setters
-+ (BOOL)enabled;
++ (BOOL)isEnabled;
 + (void)setEnabled:(BOOL)enabled;
 
 + (NSMutableArray *)blacklisted;
 + (void)setBlacklisted:(NSArray *)blacklisted;
+
++ (BOOL)isNumberBlacklisted:(NSString *)number;
 
 @end

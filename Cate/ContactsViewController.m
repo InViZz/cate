@@ -62,14 +62,21 @@
         value = [value stringByReplacingOccurrencesOfString:@" " withString:@""];
         [numbers addObject:value];
     }
-    NSDictionary *object = @{
-        @"firstName": firstName,
-        @"lastName": lastName,
-        @"numbers": numbers,
-    };
-    [_contacts addObject:object];
-    _dirty = YES;
-    [self.tableView reloadData];
+    NSMutableDictionary *object = [NSMutableDictionary dictionary];
+    if (firstName) {
+        [object setObject:firstName forKey:@"firstName"];
+    }
+    if (lastName) {
+        [object setObject:lastName forKey:@"lastName"];
+    }
+    if ([numbers count]) {
+        [object setObject:numbers forKey:@"numbers"];
+    }
+    if ([object count]) {
+        [_contacts addObject:object];
+        _dirty = YES;
+        [self.tableView reloadData];
+    }
     return NO;
 }
 
